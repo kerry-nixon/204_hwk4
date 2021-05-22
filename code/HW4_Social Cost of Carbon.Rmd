@@ -1,0 +1,60 @@
+---
+title: "Hwk 4"
+author: "Kerry Nixon"
+date: "5/22/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+library(tidyverse)
+library(dplyr)
+library(cowplot)
+```
+
+As discussed in Homework 3, the Biden Administration recently tasked an Inter-agency Working
+Group (IWG) with updating the United States Government's Social Cost of Carbon (SCC). In this
+homework, you will use new estimates of the future impacts of climate change to inform an update
+to the SCC.
+
+We recommend using R and writing functions to compute your answers wherever possible.
+In the provided dataset "damages.csv" you have new model estimates of the annual total damages
+from climate change at different levels of warming (in degrees C). The other dataset "warming.csv"
+contains estimates of a baseline future climate trajectory (in degrees C) until 2100, and a second
+trajectory that adds a one-time pulse of CO2 today to the atmosphere. The pulse is 35 billion tons
+of carbon, which is roughly equal to annual global emissions. You can think of this as a "small"
+one-time pulse in carbon emissions.
+
+1. Using damages.csv, estimate a quadratic damage function relating the dollar value of damages
+to the change in global mean temperature. Omit an intercept term; damages by construction
+must equal zero when there is no climate change. Plot your estimated damage function,
+overlaid with a scatterplot of the underlying data.
+
+2. Use warming.csv and your estimated damage function to predict damages in each year under
+the baseline climate and the pulse scenario. Make four plots: (1) damages over time without
+the pulse, (2) damages over time with the pulse, (3) the dierence in damages over time that
+arises from the pulse, and (4) the dierence in damages over time from the pulse per ton of
+CO2 (you can assume that each ton of the pulse causes the same amount of damage).
+
+3. The SCC is the present discounted value of the stream of future damages caused by one
+additional ton of CO2. The Obama Administration used a discount rate of 3% to discount
+damages. Recently, New York State used a discount rate of 2%. Calculate and make a plot of
+the SCC (y-axis) against the discount rate (x-axis) for a reasonable range of discount rates.
+
+4. The National Academies of Sciences, Engineering, and Medicine advised the government in a
+2017 report to use the Ramsey Rule when discounting within the SCC calculation:
+r =  + g
+Using  = 0:001,  = 2, and g = 0:01, what is the SCC? Locate this point on your graph from
+above.
+
+5. Now suppose there are two possible climate policies that can be pursued. Policy A is business
+as usual and Policy B is to take immediate and strong action on climate change. Use these
+facts
+
+• If you undertake Policy A there are two possible outcomes. Either warming will occur as
+in the \baseline" (i.e. \no-pulse") dataset above (this happens with probability 0.5) or
+warming each year will be 1.5 times that in the \baseline" dataset (with probability 0.5).
+
+• Under Policy B, warming will continue until 2050 as in the \baseline" dataset, and then
+will stabilize at 1.29 degrees and stay that way forever.
