@@ -20,7 +20,7 @@ homework, you will use new estimates of the future impacts of climate change to 
 to the SCC.
 
 We recommend using R and writing functions to compute your answers wherever possible.
-In the provided dataset "damages.csv" you have new model estimates of the annual total damages
+In the provided data set "damages.csv" you have new model estimates of the annual total damages
 from climate change at different levels of warming (in degrees C). The other dataset "warming.csv"
 contains estimates of a baseline future climate trajectory (in degrees C) until 2100, and a second
 trajectory that adds a one-time pulse of CO2 today to the atmosphere. The pulse is 35 billion tons
@@ -241,5 +241,5 @@ The maximum cost of policy B would be $`r round(max_cost,2)` to continue pursuin
 
 Qualitatively, how would your answer change if society were risk averse?
 
-Office hours do you invert the curve for dmages versus gains - looking at the utility (it would be utility lost not utility gained)
+Office hours do you invert the curve for damages versus gains - looking at the utility (it would be utility lost not utility gained)
 
