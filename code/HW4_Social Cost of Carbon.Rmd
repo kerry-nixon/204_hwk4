@@ -5,12 +5,13 @@ date: "5/22/2021"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(here)
 library(tidyverse)
 library(dplyr)
 library(cowplot)
+library(patchwork)
 ```
 
 As discussed in Homework 3, the Biden Administration recently tasked an Inter-agency Working
@@ -26,35 +27,213 @@ trajectory that adds a one-time pulse of CO2 today to the atmosphere. The pulse 
 of carbon, which is roughly equal to annual global emissions. You can think of this as a "small"
 one-time pulse in carbon emissions.
 
+```{r}
+#read in the data
+
+dmg <- read.csv(here("data/damages.csv")) %>%
+  mutate(warm2 = warming^2) # adding collumn for squared data for quadratic regression
+
+wrm <- read.csv(here("data/warming.csv"))
+```
+
+
 1. Using damages.csv, estimate a quadratic damage function relating the dollar value of damages
 to the change in global mean temperature. Omit an intercept term; damages by construction
 must equal zero when there is no climate change. Plot your estimated damage function,
 overlaid with a scatterplot of the underlying data.
 
+
+```{r}
+data_plot <- ggplot(data = dmg, aes(x = warming, y = damages)) +
+  geom_point()
+
+#simple linear model for comparison
+dmg_lm <- lm(damages ~ warming, data = dmg)
+
+#dam_lm_quadratic
+dmg_lmq <- lm(damages ~ warming + warm2, data=dmg)
+dmg_lmq[["coefficients"]][["(Intercept)"]] <- 0
+
+
+# Compare variance accounted for by each model
+summary(dmg_lm)
+summary(dmg_lmq)
+
+#plotting the data with dmg_lmq function
+
+data_plot +
+  geom_smooth(data = dmg_lm, aes(x = warming, y = damages)) +
+  geom_smooth(data = dmg_lmq, aes(x = warming, y = damages), color = "red")
+
+wrm_ceof <- dmg_lmq[["coefficients"]][["warming"]]
+wrm2_coef <- dmg_lmq[["coefficients"]][["warm2"]]
+
+```
+
+
 2. Use warming.csv and your estimated damage function to predict damages in each year under
 the baseline climate and the pulse scenario. Make four plots: (1) damages over time without
-the pulse, (2) damages over time with the pulse, (3) the dierence in damages over time that
-arises from the pulse, and (4) the dierence in damages over time from the pulse per ton of
+the pulse, (2) damages over time with the pulse, (3) the difference in damages over time that
+arises from the pulse, and (4) the difference in damages over time from the pulse per ton of
 CO2 (you can assume that each ton of the pulse causes the same amount of damage).
+
+```{r}
+# adding in data
+wrm_2 <- wrm %>% 
+  mutate(damages_baseline = wrm2_coef*warming_baseline^2 + wrm_ceof*warming_baseline) %>% 
+  mutate(damages_pulse = wrm2_coef*warming_pulse^2 + wrm_ceof*warming_pulse) %>% 
+  mutate(damage_diff = damages_pulse-damages_baseline) %>% 
+  mutate(diff_per_ton = damage_diff/35000000000)
+
+# plotting
+
+# baseline damages
+baseline <- ggplot(data = wrm_2, aes(x=year, y=damages_baseline)) +
+  geom_line()
+
+# damages pulse
+pulse <- ggplot(data = wrm_2, aes(x=year, y=damages_pulse)) +
+  geom_line()
+
+# difference in damages
+difference <- ggplot(data = wrm_2, aes(x=year, y=damage_diff)) +
+  geom_line()
+
+# differenc in damge per tone of CO2
+per_ton <- ggplot(data = wrm_2, aes(x=year, y=diff_per_ton)) +
+  geom_line()
+
+all_plots <- baseline/pulse | difference/per_ton
+all_plots
+```
+
 
 3. The SCC is the present discounted value of the stream of future damages caused by one
 additional ton of CO2. The Obama Administration used a discount rate of 3% to discount
 damages. Recently, New York State used a discount rate of 2%. Calculate and make a plot of
 the SCC (y-axis) against the discount rate (x-axis) for a reasonable range of discount rates.
 
+```{r}
+# Calculating SCC for different discount rates
+
+scc <- wrm_2 %>% 
+  mutate(pv_1 = diff_per_ton/((1+.01)^X)) %>% 
+  mutate(pv_2 = diff_per_ton/((1+.02)^X)) %>% 
+  mutate(pv_3 = diff_per_ton/((1+.03)^X)) %>% 
+  mutate(pv_4 = diff_per_ton/((1+.04)^X)) %>% 
+  mutate(pv_5 = diff_per_ton/((1+.05)^X))
+
+dr <- c(0.01, 0.02, 0.03, 0.04, 0.05)
+
+scc_sum <- data.frame("PV_1" = sum(scc$pv_1),
+                      "PV_2" = sum(scc$pv_2),
+                      "PV_3" = sum(scc$pv_3),
+                      "PV_4" = sum(scc$pv_4),
+                      "PV_5" = sum(scc$pv_5)) %>%
+  pivot_longer(cols = c(PV_1, PV_2, PV_3, PV_4, PV_5),
+               names_to = "dr_percent",
+               values_to = "present_damage") %>% 
+  replace("dr_percent",dr)
+
+# plot itttttt
+
+ggplot(data = scc_sum, aes(x = dr_percent, y = present_damage)) +
+  geom_point(size = 3)
+
+```
+
+
 4. The National Academies of Sciences, Engineering, and Medicine advised the government in a
 2017 report to use the Ramsey Rule when discounting within the SCC calculation:
-r =  + g
-Using  = 0:001,  = 2, and g = 0:01, what is the SCC? Locate this point on your graph from
+r = p + ng
+
+Using p = 0.001, n = 2, and g = 0.01, what is the SCC? Locate this point on your graph from
 above.
 
-5. Now suppose there are two possible climate policies that can be pursued. Policy A is business
-as usual and Policy B is to take immediate and strong action on climate change. Use these
-facts
+```{r}
+# Ramsey Rule with given values
+ramsey_r <- 0.001 + 2*0.01
 
-• If you undertake Policy A there are two possible outcomes. Either warming will occur as
-in the \baseline" (i.e. \no-pulse") dataset above (this happens with probability 0.5) or
-warming each year will be 1.5 times that in the \baseline" dataset (with probability 0.5).
+ramsey_r
 
-• Under Policy B, warming will continue until 2050 as in the \baseline" dataset, and then
-will stabilize at 1.29 degrees and stay that way forever.
+ramsey <- wrm_2 %>% 
+  mutate(pv_r = diff_per_ton/((1+0.021)^X))
+
+dr_ramsey <- c(0.021)
+
+scc_sum_r <- data.frame("PV_r" = sum(ramsey$pv_r)) %>%
+  pivot_longer(cols = c(PV_r),
+               names_to = "dr_percent",
+               values_to = "present_damage") %>% 
+  replace("dr_percent",dr_ramsey)
+
+# plot itttttt
+
+ggplot(data = scc_sum, aes(x = dr_percent, y = present_damage)) +
+  geom_point(size = 3) +
+  geom_point(data = scc_sum_r, color = "red", size = 3)
+
+```
+
+
+Given the academies' advice for calculating the discount rate, the SCC is \$`r round(scc_sum_r$present_damage,2) ` with a discount rate of `r ramsey_r`
+
+
+
+5. Now suppose there are two possible climate policies that can be pursued. Policy A is business as usual and Policy B is to take immediate and strong action on climate change. Use these facts:
+
+• Society is risk neutral
+
+• Use a discount rate of 2%
+
+• If you undertake Policy A there are two possible outcomes. Either warming will occur as in the "baseline" (i.e. "no-pulse") data set above (this happens with probability 0.5) or warming each year will be 1.5 times that in the "baseline" data set (with probability 0.5).
+
+```{r}
+# Policy A
+wrm_pol_a <- wrm %>% 
+  mutate(damages_baseline = wrm2_coef*warming_baseline^2 + wrm_ceof*warming_baseline) %>% 
+  mutate(warming_1.5 = (warming_baseline*1.5)) %>% 
+  mutate(damages_w1.5 = wrm2_coef*warming_1.5^2 + wrm_ceof*warming_1.5) %>% 
+  mutate(scc_baseline = damages_baseline/((1+.02)^X)) %>% 
+  mutate(scc_w1.5 = damages_w1.5/((1+.02)^X))
+
+pol_a_basedmg <- sum(wrm_pol_a$scc_baseline)
+pol_a_1.5dmg <- sum(wrm_pol_a$scc_w1.5)
+
+pol_a_ev <- (pol_a_basedmg*0.5)+(pol_a_1.5dmg*0.5)
+```
+
+
+• Under Policy B, warming will continue until 2050 as in the "baseline" data set, and then will stabilize at 1.29 degrees and stay that way forever.
+
+```{r}
+# Policy B
+wrm_pol_b <- wrm %>%  
+  mutate(polb_warming = warming_baseline) %>% 
+  mutate(polb_warming = case_when(
+    year > 2050 ~ 1.29,
+    year < 2051 ~ warming_baseline)) %>% 
+  mutate(damages_polb = wrm2_coef*polb_warming^2 + wrm_ceof*polb_warming) %>% 
+  mutate(scc_polb = damages_polb/((1+0.02)^X))
+
+pol_b_dmg <- sum(wrm_pol_b$scc_polb)
+
+```
+
+
+What is the expected present value of damages up to 2100 under Policy A? What is the expected present value of damages up to 2100 under Policy B? Suppose undertaking Policy A costs zero and undertaking Policy B costs X. How large could X be for it to still make economic sense to pursue Policy B instead of Policy A? 
+
+
+```{r}
+# maximum cost (X) to make Policy B worth it compared to policy A
+max_cost <- pol_a_ev - pol_b_dmg
+```
+
+
+The maximum cost of policy B would be $`r round(max_cost,2)` to continue pursuing policy B. Any additional cost would make policy A more attractive.
+
+
+Qualitatively, how would your answer change if society were risk averse?
+
+Office hours do you invert the curve for dmages versus gains - looking at the utility (it would be utility lost not utility gained)
+
