@@ -1,6 +1,6 @@
 ---
-title: "Hwk 4"
-author: "Kerry Nixon"
+title: "Hwk 4 - Social Cost of Carbon"
+author: "Kerry Nixon, Karla Bonilla, Craig Kopulsky"
 date: "5/22/2021"
 output: html_document
 ---
@@ -45,7 +45,8 @@ overlaid with a scatterplot of the underlying data.
 
 ```{r}
 data_plot <- ggplot(data = dmg, aes(x = warming, y = damages)) +
-  geom_point()
+  geom_point() +
+  theme_cowplot()
 
 #simple linear model for comparison
 dmg_lm <- lm(damages ~ warming, data = dmg)
@@ -62,7 +63,6 @@ summary(dmg_lmq)
 #plotting the data with dmg_lmq function
 
 data_plot +
-  geom_smooth(data = dmg_lm, aes(x = warming, y = damages)) +
   geom_smooth(data = dmg_lmq, aes(x = warming, y = damages), color = "red")
 
 wrm_ceof <- dmg_lmq[["coefficients"]][["warming"]]
@@ -89,19 +89,23 @@ wrm_2 <- wrm %>%
 
 # baseline damages
 baseline <- ggplot(data = wrm_2, aes(x=year, y=damages_baseline)) +
-  geom_line()
+  geom_line() +
+  theme_cowplot()
 
 # damages pulse
 pulse <- ggplot(data = wrm_2, aes(x=year, y=damages_pulse)) +
-  geom_line()
+  geom_line() +
+  theme_cowplot()
 
 # difference in damages
 difference <- ggplot(data = wrm_2, aes(x=year, y=damage_diff)) +
-  geom_line()
+  geom_line() +
+  theme_cowplot()
 
 # differenc in damge per tone of CO2
 per_ton <- ggplot(data = wrm_2, aes(x=year, y=diff_per_ton)) +
-  geom_line()
+  geom_line() +
+  theme_cowplot()
 
 all_plots <- baseline/pulse | difference/per_ton
 all_plots
@@ -138,7 +142,8 @@ scc_sum <- data.frame("PV_1" = sum(scc$pv_1),
 # plot itttttt
 
 ggplot(data = scc_sum, aes(x = dr_percent, y = present_damage)) +
-  geom_point(size = 3)
+  geom_point(size = 3) +
+  theme_cowplot()
 
 ```
 
@@ -171,7 +176,8 @@ scc_sum_r <- data.frame("PV_r" = sum(ramsey$pv_r)) %>%
 
 ggplot(data = scc_sum, aes(x = dr_percent, y = present_damage)) +
   geom_point(size = 3) +
-  geom_point(data = scc_sum_r, color = "red", size = 3)
+  geom_point(data = scc_sum_r, color = "red", size = 3) +
+  theme_cowplot()
 
 ```
 
