@@ -1,6 +1,6 @@
 ---
 title: "Hwk 4 - Social Cost of Carbon"
-author: "Kerry Nixon, Karla Bonilla, Craig Kopulsky"
+author: "Kerry Nixon, Karla Bonilla & Craig Kopulsky"
 date: "5/22/2021"
 output: html_document
 ---
@@ -14,18 +14,9 @@ library(cowplot)
 library(patchwork)
 ```
 
-As discussed in Homework 3, the Biden Administration recently tasked an Inter-agency Working
-Group (IWG) with updating the United States Government's Social Cost of Carbon (SCC). In this
-homework, you will use new estimates of the future impacts of climate change to inform an update
-to the SCC.
+The Biden Administration recently tasked an Inter-agency Working Group (IWG) with updating the United States Government's Social Cost of Carbon (SCC). Use new estimates of the future impacts of climate change to inform an update to the SCC.
 
-We recommend using R and writing functions to compute your answers wherever possible.
-In the provided data set "damages.csv" you have new model estimates of the annual total damages
-from climate change at different levels of warming (in degrees C). The other dataset "warming.csv"
-contains estimates of a baseline future climate trajectory (in degrees C) until 2100, and a second
-trajectory that adds a one-time pulse of CO2 today to the atmosphere. The pulse is 35 billion tons
-of carbon, which is roughly equal to annual global emissions. You can think of this as a "small"
-one-time pulse in carbon emissions.
+In the provided data set "damages.csv" you have new model estimates of the annual total damages from climate change at different levels of warming (in degrees C). The other dataset "warming.csv" contains estimates of a baseline future climate trajectory (in degrees C) until 2100, and a second trajectory that adds a one-time pulse of CO2 today to the atmosphere. The pulse is 35 billion tons of carbon, which is roughly equal to annual global emissions. You can think of this as a "small" one-time pulse in carbon emissions.
 
 ```{r}
 #read in the data
@@ -37,10 +28,8 @@ wrm <- read.csv(here("data/warming.csv"))
 ```
 
 
-1. Using damages.csv, estimate a quadratic damage function relating the dollar value of damages
-to the change in global mean temperature. Omit an intercept term; damages by construction
-must equal zero when there is no climate change. Plot your estimated damage function,
-overlaid with a scatterplot of the underlying data.
+### Question 1.
+Using damages.csv, estimate a quadratic damage function relating the dollar value of damages to the change in global mean temperature. Omit an intercept term; damages by construction must equal zero when there is no climate change. Plot your estimated damage function, overlaid with a scatterplot of the underlying data.
 
 
 ```{r}
@@ -71,11 +60,9 @@ wrm2_coef <- dmg_lmq[["coefficients"]][["warm2"]]
 ```
 
 
-2. Use warming.csv and your estimated damage function to predict damages in each year under
-the baseline climate and the pulse scenario. Make four plots: (1) damages over time without
-the pulse, (2) damages over time with the pulse, (3) the difference in damages over time that
-arises from the pulse, and (4) the difference in damages over time from the pulse per ton of
-CO2 (you can assume that each ton of the pulse causes the same amount of damage).
+### Question 2. 
+
+Use warming.csv and your estimated damage function to predict damages in each year under the baseline climate and the pulse scenario. Make four plots: (1) damages over time without the pulse, (2) damages over time with the pulse, (3) the difference in damages over time that arises from the pulse, and (4) the difference in damages over time from the pulse per ton of CO2 (you can assume that each ton of the pulse causes the same amount of damage).
 
 ```{r}
 # adding in data
@@ -112,10 +99,9 @@ all_plots
 ```
 
 
-3. The SCC is the present discounted value of the stream of future damages caused by one
-additional ton of CO2. The Obama Administration used a discount rate of 3% to discount
-damages. Recently, New York State used a discount rate of 2%. Calculate and make a plot of
-the SCC (y-axis) against the discount rate (x-axis) for a reasonable range of discount rates.
+### Question 3.
+
+The SCC is the present discounted value of the stream of future damages caused by one additional ton of CO2. The Obama Administration used a discount rate of 3% to discount damages. Recently, New York State used a discount rate of 2%. Calculate and make a plot of the SCC (y-axis) against the discount rate (x-axis) for a reasonable range of discount rates.
 
 ```{r}
 # Calculating SCC for different discount rates
@@ -149,12 +135,13 @@ ggplot(data = scc_sum, aes(x = dr_percent, y = present_damage)) +
 ```
 
 
-4. The National Academies of Sciences, Engineering, and Medicine advised the government in a
-2017 report to use the Ramsey Rule when discounting within the SCC calculation:
+### Question 4. 
+
+The National Academies of Sciences, Engineering, and Medicine advised the government in a 2017 report to use the Ramsey Rule when discounting within the SCC calculation:
+
 r = p + ng
 
-Using p = 0.001, n = 2, and g = 0.01, what is the SCC? Locate this point on your graph from
-above.
+Using p = 0.001, n = 2, and g = 0.01, what is the SCC? Locate this point on your graph from above.
 
 ```{r}
 # Ramsey Rule with given values
@@ -173,6 +160,7 @@ scc_sum_r <- data.frame("PV_r" = sum(ramsey$pv_r)) %>%
                values_to = "present_damage") %>% 
   replace("dr_percent",dr_ramsey)
 
+
 # plot itttttt
 
 ggplot(data = scc_sum, aes(x = dr_percent, y = present_damage)) +
@@ -187,14 +175,15 @@ ggplot(data = scc_sum, aes(x = dr_percent, y = present_damage)) +
 Given the academies' advice for calculating the discount rate, the SCC is \$`r round(scc_sum_r$present_damage,2) ` with a discount rate of `r ramsey_r`
 
 
+### Question 5. 
 
-5. Now suppose there are two possible climate policies that can be pursued. Policy A is business as usual and Policy B is to take immediate and strong action on climate change. Use these facts:
+Now suppose there are two possible climate policies that can be pursued. Policy A is business as usual and Policy B is to take immediate and strong action on climate change. Use these facts:
 
-• Society is risk neutral
+- Society is risk neutral
 
-• Use a discount rate of 2%
+- Use a discount rate of 2%
 
-• If you undertake Policy A there are two possible outcomes. Either warming will occur as in the "baseline" (i.e. "no-pulse") data set above (this happens with probability 0.5) or warming each year will be 1.5 times that in the "baseline" data set (with probability 0.5).
+- If you undertake Policy A there are two possible outcomes. Either warming will occur as in the "baseline" (i.e. "no-pulse") data set above (this happens with probability 0.5) or warming each year will be 1.5 times that in the "baseline" data set (with probability 0.5).
 
 ```{r}
 # Policy A
@@ -209,10 +198,12 @@ pol_a_basedmg <- sum(wrm_pol_a$scc_baseline)
 pol_a_1.5dmg <- sum(wrm_pol_a$scc_w1.5)
 
 pol_a_ev <- (pol_a_basedmg*0.5)+(pol_a_1.5dmg*0.5)
+
+# Policy A Expected damage = $2,931,794,400,293,138
 ```
 
 
-• Under Policy B, warming will continue until 2050 as in the "baseline" data set, and then will stabilize at 1.29 degrees and stay that way forever.
+- Under Policy B, warming will continue until 2050 as in the "baseline" data set, and then will stabilize at 1.29 degrees and stay that way forever.
 
 ```{r}
 # Policy B
@@ -226,22 +217,35 @@ wrm_pol_b <- wrm %>%
 
 pol_b_dmg <- sum(wrm_pol_b$scc_polb)
 
+# Policy B damage = $709,823,683,886,677
 ```
 
+#### What is the expected present value of damages up to 2100 under Policy A? 
 
-What is the expected present value of damages up to 2100 under Policy A? What is the expected present value of damages up to 2100 under Policy B? Suppose undertaking Policy A costs zero and undertaking Policy B costs X. How large could X be for it to still make economic sense to pursue Policy B instead of Policy A? 
+The expected present value of damages up to 2100 for Policy A are $`r format(pol_a_ev, big.mark = ",", scientific = FALSE)`
+
+#### What is the expected present value of damages up to 2100 under Policy B? 
+
+The expected present value of damages up to 2100 for Policy B are $`r format(pol_b_dmg, big.mark = ",", scientific = FALSE)`
+
+#### Suppose undertaking Policy A costs zero and undertaking Policy B costs X. How large could X be for it to still make economic sense to pursue Policy B instead of Policy A? 
 
 
 ```{r}
 # maximum cost (X) to make Policy B worth it compared to policy A
 max_cost <- pol_a_ev - pol_b_dmg
+
+# max cost = $2,221,970,716,406,462
 ```
 
 
-The maximum cost of policy B would be $`r round(max_cost,2)` to continue pursuing policy B. Any additional cost would make policy A more attractive.
+The maximum cost of policy B would be $`r format(max_cost, big.mark = ",", scientific = FALSE)` to continue pursuing policy B. Any additional cost would make policy A more attractive.
 
+#### Qualitatively, how would your answer change if society were risk averse?
 
-Qualitatively, how would your answer change if society were risk averse?
+If society were risk averse, policy B with an associated cost of $`r format(max_cost, big.mark = ",", scientific = FALSE) ` would still be preferred to policy A. Since policy B is now definitely preferred, there is some additional cost above \$`r format(max_cost, big.mark = ",", scientific = FALSE) ` that society would be willing to pay in order to pursue policy B. 
 
-If society were risk averse, policy B with an associated cost of $`r round(max_cost,2)` would be preferred to policy A. Since policy B is now definitely preferred, there is some additional cost above \$`r round(max_cost,2)` that society would be willing to pay in order to stick with policy B. Therefore, the maximum cost of policy B would be higher than it was in the previous question.
+Policy B could increase in cost until the utility of policy B and the expected utility of policy A are equivalent at which time society would be indifferent.  If costs increased above that point society would choose the “coin flip” of policy A. 
+
+Therefore, in moving from an assumption of risk neutrality to risk adverse, we know that the maximum cost of policy B would be higher than it was in the previous question, but we cannot calculate an exact value or the amount of the increase without additional data or the equation for the risk averse utility curve.
 
