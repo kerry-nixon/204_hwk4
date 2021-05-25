@@ -143,6 +143,7 @@ scc_sum <- data.frame("PV_1" = sum(scc$pv_1),
 
 ggplot(data = scc_sum, aes(x = dr_percent, y = present_damage)) +
   geom_point(size = 3) +
+  geom_line() +
   theme_cowplot()
 
 ```
@@ -176,6 +177,7 @@ scc_sum_r <- data.frame("PV_r" = sum(ramsey$pv_r)) %>%
 
 ggplot(data = scc_sum, aes(x = dr_percent, y = present_damage)) +
   geom_point(size = 3) +
+  geom_line() +
   geom_point(data = scc_sum_r, color = "red", size = 3) +
   theme_cowplot()
 
@@ -241,5 +243,5 @@ The maximum cost of policy B would be $`r round(max_cost,2)` to continue pursuin
 
 Qualitatively, how would your answer change if society were risk averse?
 
-Office hours do you invert the curve for damages versus gains - looking at the utility (it would be utility lost not utility gained)
+If society were risk averse, policy B with an associated cost of $`r round(max_cost,2)` would be preferred to policy A. Since policy B is now definitely preferred, there is some additional cost above \$`r round(max_cost,2)` that society would be willing to pay in order to stick with policy B. Therefore, the maximum cost of policy B would be higher than it was in the previous question.
 
